@@ -21,9 +21,29 @@ NEXT_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id
 GEMINI_API_KEY=your_gemini_api_key_here
 
 # =============================================================================
+# PAYPAL INTEGRATION (Required for Payment Processing)
+# =============================================================================
+NEXT_PUBLIC_PAYPAL_CLIENT_ID=your_paypal_client_id_here
+PAYPAL_CLIENT_SECRET=your_paypal_client_secret_here
+PAYPAL_WEBHOOK_ID=your_paypal_webhook_id_here
+
+# =============================================================================
 # APPLICATION CONFIGURATION (Optional)
 # =============================================================================
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
+NODE_ENV=production
+
+# =============================================================================
+# ADDITIONAL OPTIONAL VARIABLES
+# =============================================================================
+# For development debugging
+DEBUG=false
+
+# For email services (if implemented)
+# RESEND_API_KEY=your_resend_api_key_here
+
+# For analytics (if implemented)
+# NEXT_PUBLIC_GOOGLE_ANALYTICS_ID=your_ga_id_here
 ```
 
 ## Step-by-Step Setup
@@ -52,7 +72,22 @@ NEXT_PUBLIC_BASE_URL=http://localhost:3000
 2. **Create a new API key**
 3. **Copy the API key value**
 
-### 3. 🚀 Vercel Deployment Setup
+### 3. 💳 PayPal Integration Setup
+
+1. **Go to [PayPal Developer Dashboard](https://developer.paypal.com/)**
+2. **Create an application:**
+   - Log in with your PayPal account
+   - Click "Create App"
+   - Choose "Default Application" or create new
+   - Select "Sandbox" for testing or "Live" for production
+3. **Copy credentials:**
+   - **Client ID** (this is public, safe for NEXT_PUBLIC_)
+   - **Client Secret** (this is private, server-side only)
+4. **Configure features:**
+   - Enable "Subscriptions" if using subscription payments
+   - Set up webhooks for payment notifications
+
+### 4. 🚀 Vercel Deployment Setup
 
 **In your Vercel dashboard:**
 
@@ -69,6 +104,10 @@ NEXT_PUBLIC_BASE_URL=http://localhost:3000
 | `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Your sender ID | Required for messaging |
 | `NEXT_PUBLIC_FIREBASE_APP_ID` | Your app ID | Required for analytics |
 | `GEMINI_API_KEY` | Your Gemini API key | Required for AI features |
+| `NEXT_PUBLIC_PAYPAL_CLIENT_ID` | Your PayPal Client ID | Required for payments |
+| `PAYPAL_CLIENT_SECRET` | Your PayPal Client Secret | Required for payments |
+| `PAYPAL_WEBHOOK_ID` | Your PayPal Webhook ID | Required for payment notifications |
+| `NEXT_PUBLIC_BASE_URL` | Your domain URL | Optional for redirects |
 
 4. **Redeploy** your application
 
@@ -86,8 +125,14 @@ NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789012:web:abcdef123456
 # AI Configuration
 GEMINI_API_KEY=AIzaSyB...your_gemini_key
 
+# PayPal Configuration
+NEXT_PUBLIC_PAYPAL_CLIENT_ID=AeA1QIbr...your_paypal_client_id
+PAYPAL_CLIENT_SECRET=ELPTb1Q...your_paypal_secret
+PAYPAL_WEBHOOK_ID=your_webhook_id_here
+
 # Optional
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
+NODE_ENV=production
 ```
 
 ## Verification

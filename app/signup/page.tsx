@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthForm, { AuthFormData } from '@/components/ui/AuthForm';
+import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
@@ -102,12 +104,16 @@ export default function SignUpPage() {
 
   return (
     <>
-      <AuthForm
-        type="signup"
-        onSubmit={handleEmailSignUp}
-        onGoogleAuth={handleGoogleSignUp}
-        loading={loading}
-      />
+      <Header />
+      <main className="min-h-screen">
+        <AuthForm
+          type="signup"
+          onSubmit={handleEmailSignUp}
+          onGoogleAuth={handleGoogleSignUp}
+          loading={loading}
+        />
+      </main>
+      <Footer />
       <Toaster position="top-center" />
     </>
   );

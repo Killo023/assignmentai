@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthForm, { AuthFormData } from '@/components/ui/AuthForm';
+import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
 import { initializeFirebase } from '@/lib/firebase';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -84,12 +86,16 @@ export default function LoginPage() {
 
   return (
     <>
-      <AuthForm
-        type="signin"
-        onSubmit={handleEmailSignIn}
-        onGoogleAuth={handleGoogleSignIn}
-        loading={loading || !firebaseReady}
-      />
+      <Header />
+      <main className="min-h-screen">
+        <AuthForm
+          type="signin"
+          onSubmit={handleEmailSignIn}
+          onGoogleAuth={handleGoogleSignIn}
+          loading={loading || !firebaseReady}
+        />
+      </main>
+      <Footer />
       <Toaster position="top-center" />
     </>
   );

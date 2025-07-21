@@ -3,6 +3,9 @@ import { processAssignment } from '@/lib/gemini';
 import { doc, addDoc, collection, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const { content, fileName, userId, context } = await request.json();

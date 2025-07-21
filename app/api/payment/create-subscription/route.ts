@@ -3,6 +3,9 @@ import { createPayPalSubscription } from '@/lib/paypal';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const { planId, userId } = await request.json();

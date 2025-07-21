@@ -62,7 +62,7 @@ export default function ChatInterface({ assignment, userId, onClose }: ChatInter
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/gemini/chat', {
+      const response = await fetch('/api/huggingface/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

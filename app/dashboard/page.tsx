@@ -67,7 +67,7 @@ export default function DashboardPage() {
 
     setProcessingAssignment(true);
     try {
-      const response = await fetch('/api/gemini/process', {
+      const response = await fetch('/api/huggingface/process', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

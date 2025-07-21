@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { processAssignment } from '@/lib/gemini';
+import { processAssignment } from '@/lib/huggingface';
 import { doc, addDoc, collection, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Process assignment with Gemini AI
+    // Process assignment with HuggingFace AI
     const aiResult = await processAssignment(content, context);
 
     // Save assignment to Firestore

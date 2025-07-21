@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { chatWithAI } from '@/lib/huggingface';
+import { chatWithAI } from '@/lib/gemini';
 import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 

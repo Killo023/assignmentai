@@ -1,13 +1,15 @@
-import { HfInference } from '@huggingface/inference';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-if (!process.env.HUGGINGFACE_API_KEY) {
-  throw new Error('HUGGINGFACE_API_KEY is not defined in environment variables');
+if (!process.env.GEMINI_API_KEY) {
+  throw new Error('GEMINI_API_KEY is not defined in environment variables');
 }
 
-const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export async function processAssignment(content: string, context?: string): Promise<string> {
   try {
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
     const prompt = `
 You are an advanced AI academic writing assistant. Your task is to enhance and improve the following assignment while maintaining its original intent and academic integrity.
 
@@ -27,26 +29,17 @@ ${context ? `Additional Context: ${context}` : ''}
 Please provide an enhanced version of this assignment that demonstrates improved academic writing while preserving the student's original ideas and voice.
 `;
 
-    const response = await hf.textGeneration({
-      model: 'facebook/blenderbot-400M-distill',
-      inputs: prompt,
-      parameters: {
-        max_new_tokens: 512,
-        temperature: 0.7,
-        top_p: 0.95,
-        do_sample: true,
-      },
-    });
-
-    const text = response.generated_text;
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
     
     if (!text || text.trim().length === 0) {
-      throw new Error('Empty response from HuggingFace API');
+      throw new Error('Empty response from Gemini API');
     }
 
     return text;
   } catch (error) {
-    console.error('Error processing assignment with HuggingFace:', error);
+    console.error('Error processing assignment with Gemini:', error);
     
     // Provide a fallback response in case of API failure
     return `
@@ -86,8 +79,10 @@ Please revise your assignment based on these suggestions and consider using our 
 
 export async function chatWithAI(message: string, conversationHistory?: string[]): Promise<string> {
   try {
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
     const historyContext = conversationHistory && conversationHistory.length > 0 
-      ? `Previous conversation:\n${conversationHistory.slice(-5).join('\n')}\n\n` 
+      ? `Previous conversation:\n${conversationHistory.join('\n')}\n\n` 
       : '';
 
     const prompt = `
@@ -105,21 +100,12 @@ Please provide a helpful response that:
 Response:
 `;
 
-    const response = await hf.textGeneration({
-      model: 'facebook/blenderbot-400M-distill',
-      inputs: prompt,
-      parameters: {
-        max_new_tokens: 256,
-        temperature: 0.7,
-        top_p: 0.95,
-        do_sample: true,
-      },
-    });
-
-    const text = response.generated_text;
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
     
     if (!text || text.trim().length === 0) {
-      throw new Error('Empty response from HuggingFace API');
+      throw new Error('Empty response from Gemini API');
     }
 
     return text;

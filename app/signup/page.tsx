@@ -1,18 +1,36 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthForm, { AuthFormData } from '@/components/ui/AuthForm';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
+import { auth, db, initializeFirebase, hasFirebaseConfig } from '@/lib/firebase';
 import toast, { Toaster } from 'react-hot-toast';
 
 export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
+  const [firebaseReady, setFirebaseReady] = useState(false);
+  const [firebaseError, setFirebaseError] = useState<string | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    if (!hasFirebaseConfig) {
+      setFirebaseError('Firebase is not configured. Please set up environment variables.');
+      setFirebaseReady(false);
+      return;
+    }
+
+    initializeFirebase().then(() => {
+      setFirebaseReady(true);
+      setFirebaseError(null);
+    }).catch((error) => {
+      setFirebaseError(error.message);
+      setFirebaseReady(false);
+    });
+  }, []);
 
   const createUserProfile = async (user: any, additionalData: any = {}) => {
     const userProfile = {
@@ -43,6 +61,11 @@ export default function SignUpPage() {
   };
 
   const handleEmailSignUp = async (data: AuthFormData) => {
+    if (!firebaseReady) {
+      toast.error(firebaseError || 'Firebase is not ready. Please check configuration.');
+      return;
+    }
+
     setLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
@@ -76,11 +99,15 @@ export default function SignUpPage() {
   };
 
   const handleGoogleSignUp = async () => {
+    if (!firebaseReady) {
+      toast.error(firebaseError || 'Firebase is not ready. Please check configuration.');
+      return;
+    }
+
     setLoading(true);
     try {
-      // Check if we're in demo mode
-      if (!auth || auth === null || typeof auth.signInWithPopup !== 'function') {
-        throw new Error('Demo mode: Please set up Firebase environment variables for Google authentication');
+      if (!auth) {
+        throw new Error('Authentication service not available. Please check Firebase configuration.');
       }
       
       const provider = new GoogleAuthProvider();
@@ -93,37 +120,71 @@ export default function SignUpPage() {
       router.push('/dashboard');
     } catch (error: any) {
       console.error('Google sign up error:', error);
-      if (error.message && error.message.includes('Demo mode')) {
-        toast.error('Demo Mode: Google sign-up requires Firebase configuration. Please check the setup guide.');
-      } else if (error.code === 'auth/popup-closed-by-user') {
+      if (error.code === 'auth/popup-closed-by-user') {
         toast.error('Sign up cancelled');
       } else if (error.code === 'auth/account-exists-with-different-credential') {
         toast.error('Account already exists with different credentials');
       } else if (error.code === 'auth/popup-blocked') {
         toast.error('Popup blocked. Please allow popups and try again.');
-      } else {
-        toast.error('Failed to sign up with Google. Please try again or use email/password.');
+              } else {
+          toast.error('Failed to sign up with Google. Please try again.');
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  return (
-    <>
-      <Header />
-      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 py-12 px-4">
-        <div className="w-full max-w-md">
-          <AuthForm
-            type="signup"
-            onSubmit={handleEmailSignUp}
-            onGoogleAuth={handleGoogleSignUp}
-            loading={loading}
-          />
-        </div>
-      </main>
-      <Footer />
-      <Toaster position="top-center" />
-    </>
-  );
+    if (firebaseError) {
+      return (
+        <>
+          <Header />
+          <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-pink-50 py-12 px-4">
+            <div className="w-full max-w-md text-center">
+              <div className="bg-white p-8 rounded-lg shadow-lg">
+                <h1 className="text-2xl font-bold text-red-600 mb-4">Configuration Required</h1>
+                <p className="text-gray-600 mb-6">
+                  Firebase authentication is not configured. Please set up your environment variables.
+                </p>
+                <div className="text-left bg-gray-100 p-4 rounded text-sm">
+                  <p className="font-semibold mb-2">Required environment variables:</p>
+                  <ul className="list-disc list-inside space-y-1 text-gray-700">
+                    <li>NEXT_PUBLIC_FIREBASE_API_KEY</li>
+                    <li>NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN</li>
+                    <li>NEXT_PUBLIC_FIREBASE_PROJECT_ID</li>
+                  </ul>
+                </div>
+                <div className="mt-6">
+                  <a 
+                    href="/" 
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Back to Home
+                  </a>
+                </div>
+              </div>
+            </div>
+          </main>
+          <Footer />
+          <Toaster position="top-center" />
+        </>
+      );
+    }
+
+    return (
+      <>
+        <Header />
+        <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 py-12 px-4">
+          <div className="w-full max-w-md">
+            <AuthForm
+              type="signup"
+              onSubmit={handleEmailSignUp}
+              onGoogleAuth={handleGoogleSignUp}
+              loading={loading || !firebaseReady}
+            />
+          </div>
+        </main>
+        <Footer />
+        <Toaster position="top-center" />
+      </>
+    );
 } 

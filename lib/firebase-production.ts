@@ -1,4 +1,4 @@
-// Production Firebase configuration - No demo mode fallback
+// Production Firebase configuration
 let auth: any;
 let db: any;
 
@@ -11,7 +11,7 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Check if Firebase config exists
+// Check if basic Firebase config exists (less strict check)
 const hasFirebaseConfig = !!(
   process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
   process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN &&
@@ -20,10 +20,6 @@ const hasFirebaseConfig = !!(
 
 // Dynamic import to avoid build-time issues
 async function initializeFirebase() {
-  if (!hasFirebaseConfig) {
-    throw new Error('Firebase environment variables not configured. Please set up Firebase credentials in your environment variables.');
-  }
-
   try {
     const { initializeApp, getApps, getApp } = await import('firebase/app');
     const { getAuth } = await import('firebase/auth');
@@ -39,31 +35,26 @@ async function initializeFirebase() {
     auth = getAuth(app);
     db = getFirestore(app);
     
-    console.log('🔥 Firebase initialized successfully');
+    console.log('Firebase initialized successfully in production mode');
     return { auth, db };
   } catch (error) {
-    console.error('❌ Firebase initialization failed:', error);
-    throw new Error(`Firebase initialization failed: ${error}`);
+    console.error('Firebase initialization failed:', error);
+    throw error; // Don't fall back to demo mode, let the error surface
   }
 }
 
-// Initialize Firebase for client-side
-if (typeof window !== 'undefined') {
-  if (hasFirebaseConfig) {
-    initializeFirebase().catch(error => {
-      console.error('❌ Firebase initialization error:', error);
-    });
-  } else {
-    console.error('⚠️ Firebase environment variables not found. Please configure Firebase in your deployment settings.');
-  }
-} else {
-  // Server-side: Initialize auth and db as null, will be initialized on client
-  auth = null;
-  db = null;
+// Initialize Firebase immediately for client-side
+if (typeof window !== 'undefined' && hasFirebaseConfig) {
+  initializeFirebase().catch(error => {
+    console.error('Failed to initialize Firebase:', error);
+    // In production, we want to know about Firebase failures
+  });
+} else if (typeof window !== 'undefined') {
+  console.error('Firebase environment variables not configured. Please check your setup.');
 }
 
 export { auth, db, initializeFirebase, hasFirebaseConfig };
 
 export default {
-  name: 'ai-assignment-app'
+  name: 'ai-assignment-app-production'
 }; 

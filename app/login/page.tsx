@@ -5,25 +5,34 @@ import { useRouter } from 'next/navigation';
 import AuthForm, { AuthFormData } from '@/components/ui/AuthForm';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import { initializeFirebase } from '@/lib/firebase';
+import { initializeFirebase, hasFirebaseConfig } from '@/lib/firebase';
 import toast, { Toaster } from 'react-hot-toast';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [firebaseReady, setFirebaseReady] = useState(false);
+  const [firebaseError, setFirebaseError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
+    if (!hasFirebaseConfig) {
+      setFirebaseError('Firebase is not configured. Please set up environment variables.');
+      setFirebaseReady(false);
+      return;
+    }
+
     initializeFirebase().then(() => {
       setFirebaseReady(true);
-    }).catch(() => {
-      setFirebaseReady(true); // Continue with demo mode
+      setFirebaseError(null);
+    }).catch((error) => {
+      setFirebaseError(error.message);
+      setFirebaseReady(false);
     });
   }, []);
 
   const handleEmailSignIn = async (data: AuthFormData) => {
     if (!firebaseReady) {
-      toast.error('System is initializing. Please wait...');
+      toast.error(firebaseError || 'Firebase is not ready. Please check configuration.');
       return;
     }
 
@@ -32,6 +41,10 @@ export default function LoginPage() {
       // Dynamic import to avoid build issues
       const { signInWithEmailAndPassword } = await import('firebase/auth');
       const { auth } = await import('@/lib/firebase');
+      
+      if (!auth) {
+        throw new Error('Authentication service not available. Please check Firebase configuration.');
+      }
       
       await signInWithEmailAndPassword(auth, data.email, data.password);
       toast.success('Welcome back!');
@@ -47,7 +60,7 @@ export default function LoginPage() {
       } else if (error.code === 'auth/too-many-requests') {
         toast.error('Too many failed attempts. Please try again later.');
       } else {
-        toast.error('Failed to sign in. Please try again.');
+        toast.error('Failed to sign in. Please check your credentials and try again.');
       }
     } finally {
       setLoading(false);
@@ -56,7 +69,7 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     if (!firebaseReady) {
-      toast.error('System is initializing. Please wait...');
+      toast.error(firebaseError || 'Firebase is not ready. Please check configuration.');
       return;
     }
 
@@ -66,9 +79,8 @@ export default function LoginPage() {
       const { signInWithPopup, GoogleAuthProvider } = await import('firebase/auth');
       const { auth } = await import('@/lib/firebase');
       
-      // Check if we're in demo mode
-      if (!auth || auth === null) {
-        throw new Error('Demo mode: Please set up Firebase environment variables for Google authentication');
+      if (!auth) {
+        throw new Error('Authentication service not available. Please check Firebase configuration.');
       }
       
       const provider = new GoogleAuthProvider();
@@ -77,19 +89,53 @@ export default function LoginPage() {
       router.push('/dashboard');
     } catch (error: any) {
       console.error('Google sign in error:', error);
-      if (error.message && error.message.includes('Demo mode')) {
-        toast.error('Demo Mode: Google sign-in requires Firebase configuration. Please check the setup guide.');
-      } else if (error.code === 'auth/popup-closed-by-user') {
+      if (error.code === 'auth/popup-closed-by-user') {
         toast.error('Sign in cancelled');
       } else if (error.code === 'auth/popup-blocked') {
         toast.error('Popup blocked. Please allow popups and try again.');
       } else {
-        toast.error('Failed to sign in with Google. Please try again or use email/password.');
+        toast.error('Failed to sign in with Google. Please try again.');
       }
     } finally {
       setLoading(false);
     }
   };
+
+  if (firebaseError) {
+    return (
+      <>
+        <Header />
+        <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-pink-50 py-12 px-4">
+          <div className="w-full max-w-md text-center">
+            <div className="bg-white p-8 rounded-lg shadow-lg">
+              <h1 className="text-2xl font-bold text-red-600 mb-4">Configuration Required</h1>
+              <p className="text-gray-600 mb-6">
+                Firebase authentication is not configured. Please set up your environment variables.
+              </p>
+              <div className="text-left bg-gray-100 p-4 rounded text-sm">
+                <p className="font-semibold mb-2">Required environment variables:</p>
+                <ul className="list-disc list-inside space-y-1 text-gray-700">
+                  <li>NEXT_PUBLIC_FIREBASE_API_KEY</li>
+                  <li>NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN</li>
+                  <li>NEXT_PUBLIC_FIREBASE_PROJECT_ID</li>
+                </ul>
+              </div>
+              <div className="mt-6">
+                <a 
+                  href="/" 
+                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Back to Home
+                </a>
+              </div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+        <Toaster position="top-center" />
+      </>
+    );
+  }
 
   return (
     <>

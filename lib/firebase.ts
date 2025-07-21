@@ -1,4 +1,6 @@
 // Production Firebase configuration - No demo mode fallback
+import { debugFirebaseConfig } from './firebase-debug';
+
 let auth: any;
 let db: any;
 
@@ -10,6 +12,11 @@ const firebaseConfig = {
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
+
+// Debug configuration in development
+if (process.env.NODE_ENV === 'development' || typeof window !== 'undefined') {
+  debugFirebaseConfig();
+}
 
 // Check if Firebase config exists
 const hasFirebaseConfig = !!(

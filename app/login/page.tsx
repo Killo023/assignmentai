@@ -66,18 +66,25 @@ export default function LoginPage() {
       const { signInWithPopup, GoogleAuthProvider } = await import('firebase/auth');
       const { auth } = await import('@/lib/firebase');
       
+      // Check if we're in demo mode
+      if (!auth || auth === null) {
+        throw new Error('Demo mode: Please set up Firebase environment variables for Google authentication');
+      }
+      
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       toast.success('Welcome back!');
       router.push('/dashboard');
     } catch (error: any) {
       console.error('Google sign in error:', error);
-      if (error.code === 'auth/popup-closed-by-user') {
+      if (error.message && error.message.includes('Demo mode')) {
+        toast.error('Demo Mode: Google sign-in requires Firebase configuration. Please check the setup guide.');
+      } else if (error.code === 'auth/popup-closed-by-user') {
         toast.error('Sign in cancelled');
       } else if (error.code === 'auth/popup-blocked') {
         toast.error('Popup blocked. Please allow popups and try again.');
       } else {
-        toast.error('Failed to sign in with Google');
+        toast.error('Failed to sign in with Google. Please try again or use email/password.');
       }
     } finally {
       setLoading(false);

@@ -78,6 +78,11 @@ export default function SignUpPage() {
   const handleGoogleSignUp = async () => {
     setLoading(true);
     try {
+      // Check if we're in demo mode
+      if (!auth || auth === null || typeof auth.signInWithPopup !== 'function') {
+        throw new Error('Demo mode: Please set up Firebase environment variables for Google authentication');
+      }
+      
       const provider = new GoogleAuthProvider();
       const userCredential = await signInWithPopup(auth, provider);
       
@@ -88,14 +93,16 @@ export default function SignUpPage() {
       router.push('/dashboard');
     } catch (error: any) {
       console.error('Google sign up error:', error);
-      if (error.code === 'auth/popup-closed-by-user') {
+      if (error.message && error.message.includes('Demo mode')) {
+        toast.error('Demo Mode: Google sign-up requires Firebase configuration. Please check the setup guide.');
+      } else if (error.code === 'auth/popup-closed-by-user') {
         toast.error('Sign up cancelled');
       } else if (error.code === 'auth/account-exists-with-different-credential') {
         toast.error('Account already exists with different credentials');
       } else if (error.code === 'auth/popup-blocked') {
         toast.error('Popup blocked. Please allow popups and try again.');
       } else {
-        toast.error('Failed to sign up with Google');
+        toast.error('Failed to sign up with Google. Please try again or use email/password.');
       }
     } finally {
       setLoading(false);

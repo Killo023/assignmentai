@@ -21,20 +21,54 @@ export const demoAuth = {
   signOut: async () => {
     console.log('Demo mode: Sign out attempted');
     return Promise.resolve();
+  },
+  // Additional Firebase auth properties to prevent undefined errors
+  app: {
+    name: 'demo-app',
+    options: {}
+  },
+  config: {
+    apiKey: 'demo-key'
   }
 };
 
+// Demo GoogleAuthProvider
+export const demoGoogleAuthProvider = function() {
+  console.log('Demo mode: GoogleAuthProvider created');
+  return {
+    addScope: () => {},
+    setCustomParameters: () => {},
+    providerId: 'google.com'
+  };
+};
+
 export const demoDb = {
-  collection: () => ({
-    doc: () => ({
-      get: () => Promise.resolve({ exists: () => false, data: () => ({}) }),
-      set: () => Promise.resolve(),
-      update: () => Promise.resolve()
+  collection: (path: string) => ({
+    doc: (id?: string) => ({
+      get: () => Promise.resolve({ 
+        exists: () => false, 
+        data: () => ({}),
+        id: id || 'demo-id'
+      }),
+      set: (data: any) => {
+        console.log('Demo mode: Document set attempted', { path, id, data });
+        return Promise.resolve();
+      },
+      update: (data: any) => {
+        console.log('Demo mode: Document update attempted', { path, id, data });
+        return Promise.resolve();
+      }
     }),
-    add: () => Promise.resolve({ id: 'demo-id' }),
-    where: () => ({
-      orderBy: () => ({
-        get: () => Promise.resolve({ docs: [] })
+    add: (data: any) => {
+      console.log('Demo mode: Document add attempted', { path, data });
+      return Promise.resolve({ id: 'demo-id' });
+    },
+    where: (field: string, operator: any, value: any) => ({
+      orderBy: (field: string, direction?: string) => ({
+        get: () => {
+          console.log('Demo mode: Query attempted', { path, field, operator, value });
+          return Promise.resolve({ docs: [] });
+        }
       })
     })
   })

@@ -87,13 +87,15 @@ export default function LoginPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen">
-        <AuthForm
-          type="signin"
-          onSubmit={handleEmailSignIn}
-          onGoogleAuth={handleGoogleSignIn}
-          loading={loading || !firebaseReady}
-        />
+      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 py-12 px-4">
+        <div className="w-full max-w-md">
+          <AuthForm
+            type="signin"
+            onSubmit={handleEmailSignIn}
+            onGoogleAuth={handleGoogleSignIn}
+            loading={loading || !firebaseReady}
+          />
+        </div>
       </main>
       <Footer />
       <Toaster position="top-center" />

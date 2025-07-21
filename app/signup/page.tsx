@@ -105,13 +105,15 @@ export default function SignUpPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen">
-        <AuthForm
-          type="signup"
-          onSubmit={handleEmailSignUp}
-          onGoogleAuth={handleGoogleSignUp}
-          loading={loading}
-        />
+      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 py-12 px-4">
+        <div className="w-full max-w-md">
+          <AuthForm
+            type="signup"
+            onSubmit={handleEmailSignUp}
+            onGoogleAuth={handleGoogleSignUp}
+            loading={loading}
+          />
+        </div>
       </main>
       <Footer />
       <Toaster position="top-center" />

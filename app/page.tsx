@@ -8,6 +8,11 @@ import PricingCard from '@/components/landing/PricingCard';
 import FAQ from '@/components/landing/FAQ';
 import FinalCTA from '@/components/landing/FinalCTA';
 
+export const metadata = {
+  title: 'AssignmentAI - AI-Powered Assignment Assistant',
+  description: 'Upload any assignment and get university-level solutions in minutes.'
+};
+
 export default function HomePage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">

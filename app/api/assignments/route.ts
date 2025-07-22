@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ensureFirebaseInitialized } from '@/lib/firebase';
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export const runtime = 'nodejs';
 
@@ -10,16 +10,6 @@ export async function GET(request: NextRequest) {
 
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
-    }
-
-    // Ensure Firebase is initialized
-    const { db } = await ensureFirebaseInitialized();
-    
-    if (!db) {
-      return NextResponse.json(
-        { error: 'Firebase not properly configured' },
-        { status: 500 }
-      );
     }
 
     // Get user's assignments
@@ -51,6 +41,7 @@ export async function GET(request: NextRequest) {
           typeof error === 'object' && error !== null && 'message' in error
             ? (error as any).message
             : String(error),
+        stack: typeof error === 'object' && error !== null && 'stack' in error ? (error as any).stack : undefined,
       },
       { status: 500 }
     );

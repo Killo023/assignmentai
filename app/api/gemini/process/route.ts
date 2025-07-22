@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { processAssignment } from '@/lib/gemini';
 import { doc, addDoc, collection, getDoc, updateDoc, increment } from 'firebase/firestore';
-import { ensureFirebaseInitialized } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -14,16 +14,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Missing required fields: content, fileName, userId' },
         { status: 400 }
-      );
-    }
-
-    // Ensure Firebase is initialized
-    const { db } = await ensureFirebaseInitialized();
-    
-    if (!db) {
-      return NextResponse.json(
-        { error: 'Firebase not properly configured' },
-        { status: 500 }
       );
     }
 

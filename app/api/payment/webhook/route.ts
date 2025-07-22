@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyPayPalWebhook } from '@/lib/paypal';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
-import { ensureFirebaseInitialized } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,16 +17,6 @@ export async function POST(request: NextRequest) {
     if (!isValid) {
       console.error('Invalid PayPal webhook signature');
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
-    }
-
-    // Ensure Firebase is initialized
-    const { db } = await ensureFirebaseInitialized();
-    
-    if (!db) {
-      return NextResponse.json(
-        { error: 'Firebase not properly configured' },
-        { status: 500 }
-      );
     }
 
     const event = JSON.parse(body);

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { doc, getDoc } from 'firebase/firestore';
-import { ensureFirebaseInitialized } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 
 export const runtime = 'nodejs';
 
@@ -10,16 +10,6 @@ export async function GET(request: NextRequest) {
 
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 401 });
-    }
-
-    // Ensure Firebase is initialized
-    const { db } = await ensureFirebaseInitialized();
-    
-    if (!db) {
-      return NextResponse.json(
-        { error: 'Firebase not properly configured' },
-        { status: 500 }
-      );
     }
 
     const userRef = doc(db, 'users', userId);

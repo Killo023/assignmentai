@@ -7,6 +7,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { initializeFirebase, hasFirebaseConfig } from '@/lib/firebase';
 import toast, { Toaster } from 'react-hot-toast';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -67,6 +68,44 @@ export default function LoginPage() {
     }
   };
 
+  // Add this helper function (copy from signup)
+  const createUserProfile = async (user: any, additionalData: any = {}) => {
+    const userProfile = {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName || additionalData.name || user.email.split('@')[0],
+      createdAt: new Date(),
+      subscription: {
+        plan: 'trial',
+        status: 'active',
+        trialStartDate: new Date(),
+        trialEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      },
+      usage: {
+        assignmentsCompleted: 0,
+        assignmentsLimit: 5, // Trial limit
+      },
+      ...additionalData,
+    };
+    try {
+      await setDoc(doc((await import('@/lib/firebase')).db, 'users', user.uid), userProfile);
+      return userProfile;
+    } catch (error) {
+      console.error('Error creating user profile:', error);
+      throw error;
+    }
+  };
+
+  // Add this helper to ensure user profile exists after Google sign-in
+  const ensureUserProfile = async (user: any) => {
+    const { db } = await import('@/lib/firebase');
+    const userRef = doc(db, 'users', user.uid);
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) {
+      await createUserProfile(user);
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     if (!firebaseReady) {
       toast.error(firebaseError || 'Firebase is not ready. Please check configuration.');
@@ -84,7 +123,9 @@ export default function LoginPage() {
       }
       
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      // Ensure user profile exists in Firestore
+      await ensureUserProfile(result.user);
       toast.success('Welcome back!');
       router.push('/dashboard');
     } catch (error: any) {

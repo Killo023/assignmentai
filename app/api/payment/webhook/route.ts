@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyPayPalWebhook } from '@/lib/paypal';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { ensureFirebaseInitialized } from '@/lib/firebase';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -19,6 +19,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
+    // Ensure Firebase is initialized
+    const { db } = await ensureFirebaseInitialized();
+    
+    if (!db) {
+      return NextResponse.json(
+        { error: 'Firebase not properly configured' },
+        { status: 500 }
+      );
+    }
+
     const event = JSON.parse(body);
     const eventType = event.event_type;
     const resource = event.resource;
@@ -27,23 +37,23 @@ export async function POST(request: NextRequest) {
 
     switch (eventType) {
       case 'BILLING.SUBSCRIPTION.ACTIVATED':
-        await handleSubscriptionActivated(resource);
+        await handleSubscriptionActivated(db, resource);
         break;
       
       case 'BILLING.SUBSCRIPTION.CANCELLED':
-        await handleSubscriptionCancelled(resource);
+        await handleSubscriptionCancelled(db, resource);
         break;
       
       case 'BILLING.SUBSCRIPTION.SUSPENDED':
-        await handleSubscriptionSuspended(resource);
+        await handleSubscriptionSuspended(db, resource);
         break;
       
       case 'BILLING.SUBSCRIPTION.PAYMENT.FAILED':
-        await handlePaymentFailed(resource);
+        await handlePaymentFailed(db, resource);
         break;
       
       case 'BILLING.SUBSCRIPTION.RENEWED':
-        await handleSubscriptionRenewed(resource);
+        await handleSubscriptionRenewed(db, resource);
         break;
       
       default:
@@ -60,10 +70,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handleSubscriptionActivated(subscription: any) {
+async function handleSubscriptionActivated(db: any, subscription: any) {
   try {
     // Find user by subscription ID
-    const userId = await findUserBySubscriptionId(subscription.id);
+    const userId = await findUserBySubscriptionId(db, subscription.id);
     
     if (!userId) {
       console.error('User not found for subscription:', subscription.id);
@@ -95,9 +105,9 @@ async function handleSubscriptionActivated(subscription: any) {
   }
 }
 
-async function handleSubscriptionCancelled(subscription: any) {
+async function handleSubscriptionCancelled(db: any, subscription: any) {
   try {
-    const userId = await findUserBySubscriptionId(subscription.id);
+    const userId = await findUserBySubscriptionId(db, subscription.id);
     
     if (!userId) {
       console.error('User not found for subscription:', subscription.id);
@@ -118,9 +128,9 @@ async function handleSubscriptionCancelled(subscription: any) {
   }
 }
 
-async function handleSubscriptionSuspended(subscription: any) {
+async function handleSubscriptionSuspended(db: any, subscription: any) {
   try {
-    const userId = await findUserBySubscriptionId(subscription.id);
+    const userId = await findUserBySubscriptionId(db, subscription.id);
     
     if (!userId) {
       console.error('User not found for subscription:', subscription.id);
@@ -141,10 +151,10 @@ async function handleSubscriptionSuspended(subscription: any) {
   }
 }
 
-async function handlePaymentFailed(resource: any) {
+async function handlePaymentFailed(db: any, resource: any) {
   try {
     const subscriptionId = resource.billing_agreement_id;
-    const userId = await findUserBySubscriptionId(subscriptionId);
+    const userId = await findUserBySubscriptionId(db, subscriptionId);
     
     if (!userId) {
       console.error('User not found for subscription:', subscriptionId);
@@ -165,9 +175,9 @@ async function handlePaymentFailed(resource: any) {
   }
 }
 
-async function handleSubscriptionRenewed(subscription: any) {
+async function handleSubscriptionRenewed(db: any, subscription: any) {
   try {
-    const userId = await findUserBySubscriptionId(subscription.id);
+    const userId = await findUserBySubscriptionId(db, subscription.id);
     
     if (!userId) {
       console.error('User not found for subscription:', subscription.id);
@@ -189,7 +199,7 @@ async function handleSubscriptionRenewed(subscription: any) {
   }
 }
 
-async function findUserBySubscriptionId(subscriptionId: string): Promise<string | null> {
+async function findUserBySubscriptionId(db: any, subscriptionId: string): Promise<string | null> {
   try {
     // In a real implementation, you'd query Firestore to find the user
     // For now, we'll implement a simple search

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createPayPalSubscription } from '@/lib/paypal';
 import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { ensureFirebaseInitialized } from '@/lib/firebase';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,6 +17,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Ensure Firebase is initialized
+    const { db } = await ensureFirebaseInitialized();
+    
+    if (!db) {
+      return NextResponse.json(
+        { error: 'Firebase not properly configured' },
+        { status: 500 }
+      );
+    }
+
     // Create PayPal subscription
     const subscription = await createPayPalSubscription(planId, userId);
 
@@ -28,8 +38,7 @@ export async function POST(request: NextRequest) {
         planId,
         status: 'pending',
         createdAt: new Date(),
-      },
-      updatedAt: new Date(),
+      }
     });
 
     return NextResponse.json({
@@ -38,7 +47,7 @@ export async function POST(request: NextRequest) {
       status: subscription.status,
     });
   } catch (error) {
-    console.error('Error creating subscription:', error);
+    console.error('Error creating PayPal subscription:', error);
     return NextResponse.json(
       { error: 'Failed to create subscription' },
       { status: 500 }

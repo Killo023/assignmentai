@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { chatWithAI } from '@/lib/gemini';
 import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { ensureFirebaseInitialized } from '@/lib/firebase';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -14,6 +14,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Missing required fields: message, assignmentId, userId' },
         { status: 400 }
+      );
+    }
+
+    // Ensure Firebase is initialized
+    const { db } = await ensureFirebaseInitialized();
+    
+    if (!db) {
+      return NextResponse.json(
+        { error: 'Firebase not properly configured' },
+        { status: 500 }
       );
     }
 

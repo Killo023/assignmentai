@@ -1,8 +1,9 @@
-// Production Firebase configuration - No demo mode fallback
+// Production Firebase configuration - Works on both client and server
 import { debugFirebaseConfig } from './firebase-debug';
 
 let auth: any;
 let db: any;
+let isInitialized = false;
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -31,6 +32,10 @@ async function initializeFirebase() {
     throw new Error('Firebase environment variables not configured. Please set up Firebase credentials in your environment variables.');
   }
 
+  if (isInitialized) {
+    return { auth, db };
+  }
+
   try {
     const { initializeApp, getApps, getApp } = await import('firebase/app');
     const { getAuth } = await import('firebase/auth');
@@ -45,6 +50,7 @@ async function initializeFirebase() {
 
     auth = getAuth(app);
     db = getFirestore(app);
+    isInitialized = true;
     
     console.log('🔥 Firebase initialized successfully');
     return { auth, db };
@@ -54,19 +60,21 @@ async function initializeFirebase() {
   }
 }
 
-// Initialize Firebase for client-side
-if (typeof window !== 'undefined') {
-  if (hasFirebaseConfig) {
-    initializeFirebase().catch(error => {
-      console.error('❌ Firebase initialization error:', error);
-    });
-  } else {
-    console.error('⚠️ Firebase environment variables not found. Please configure Firebase in your deployment settings.');
-  }
+// Initialize Firebase for both client and server
+if (hasFirebaseConfig) {
+  initializeFirebase().catch(error => {
+    console.error('❌ Firebase initialization error:', error);
+  });
 } else {
-  // Server-side: Initialize auth and db as null, will be initialized on client
-  auth = null;
-  db = null;
+  console.error('⚠️ Firebase environment variables not found. Please configure Firebase in your deployment settings.');
+}
+
+// Export function to ensure Firebase is initialized before use
+export async function ensureFirebaseInitialized() {
+  if (!isInitialized) {
+    await initializeFirebase();
+  }
+  return { auth, db };
 }
 
 export { auth, db, initializeFirebase, hasFirebaseConfig };

@@ -49,6 +49,14 @@ export default function DashboardPage() {
     return () => unsubscribe();
   }, [router]);
 
+  // Add effect to refetch user data when switching to profile tab
+  useEffect(() => {
+    if (activeTab === 'profile' && user) {
+      setLoading(true);
+      fetchUserData(user.uid).finally(() => setLoading(false));
+    }
+  }, [activeTab, user]);
+
   const fetchUserData = async (userId: string) => {
     try {
       const userRef = doc(db, 'users', userId);
@@ -110,15 +118,20 @@ export default function DashboardPage() {
 
   // Calculate days left in trial
   let daysLeft = null;
-  if (userData?.subscription?.plan === 'trial' && userData?.subscription?.trialEndDate) {
+  if (
+    userData?.subscription?.plan === 'trial' &&
+    userData?.subscription?.trialEndDate
+  ) {
     let trialEnd;
     if (userData.subscription.trialEndDate.toDate) {
       trialEnd = userData.subscription.trialEndDate.toDate();
     } else {
       trialEnd = new Date(userData.subscription.trialEndDate);
     }
-    const today = new Date();
-    daysLeft = Math.max(0, Math.ceil((trialEnd.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+    if (!isNaN(trialEnd.getTime())) {
+      const today = new Date();
+      daysLeft = Math.max(0, Math.ceil((trialEnd.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+    }
   }
 
   if (loading) {
@@ -282,6 +295,7 @@ export default function DashboardPage() {
             <UserProfile
               userData={userData}
               onUpgrade={handleUpgrade}
+              loading={loading}
             />
           )}
         </motion.div>

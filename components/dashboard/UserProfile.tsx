@@ -28,13 +28,14 @@ interface UserData {
 interface UserProfileProps {
   userData: UserData | null;
   onUpgrade: () => void;
+  loading?: boolean;
 }
 
-export default function UserProfile({ userData, onUpgrade }: UserProfileProps) {
-  const [loading, setLoading] = useState(false);
+export default function UserProfile({ userData, onUpgrade, loading = false }: UserProfileProps) {
+  const [loadingState, setLoading] = useState(false);
   const router = useRouter();
 
-  if (!userData) {
+  if (loading || !userData) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-8">
@@ -200,10 +201,10 @@ export default function UserProfile({ userData, onUpgrade }: UserProfileProps) {
             onClick={handleSignOut}
             variant="outline"
             size="sm"
-            disabled={loading}
+            disabled={loadingState}
             className="w-full"
           >
-            {loading ? 'Signing out...' : 'Sign Out'}
+            {loadingState ? 'Signing out...' : 'Sign Out'}
           </Button>
         </CardContent>
       </Card>

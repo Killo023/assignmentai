@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import AuthForm, { AuthFormData } from '@/components/ui/AuthForm';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import { initializeFirebase, hasFirebaseConfig } from '@/lib/firebase';
 import toast, { Toaster } from 'react-hot-toast';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
@@ -16,19 +15,8 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!hasFirebaseConfig) {
-      setFirebaseError('Firebase is not configured. Please set up environment variables.');
-      setFirebaseReady(false);
-      return;
-    }
-
-    initializeFirebase().then(() => {
-      setFirebaseReady(true);
-      setFirebaseError(null);
-    }).catch((error) => {
-      setFirebaseError(error.message);
-      setFirebaseReady(false);
-    });
+    setFirebaseReady(true);
+    setFirebaseError(null);
   }, []);
 
   const handleEmailSignIn = async (data: AuthFormData) => {

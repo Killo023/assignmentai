@@ -7,7 +7,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { auth, db, initializeFirebase, hasFirebaseConfig } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import toast, { Toaster } from 'react-hot-toast';
 
 export default function SignUpPage() {
@@ -17,19 +17,8 @@ export default function SignUpPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!hasFirebaseConfig) {
-      setFirebaseError('Firebase is not configured. Please set up environment variables.');
-      setFirebaseReady(false);
-      return;
-    }
-
-    initializeFirebase().then(() => {
-      setFirebaseReady(true);
-      setFirebaseError(null);
-    }).catch((error) => {
-      setFirebaseError(error.message);
-      setFirebaseReady(false);
-    });
+    setFirebaseReady(true);
+    setFirebaseError(null);
   }, []);
 
   const createUserProfile = async (user: any, additionalData: any = {}) => {
@@ -133,42 +122,6 @@ export default function SignUpPage() {
         setLoading(false);
       }
     };
-
-    if (firebaseError) {
-      return (
-        <>
-          <Header />
-          <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-pink-50 py-12 px-4">
-            <div className="w-full max-w-md text-center">
-              <div className="bg-white p-8 rounded-lg shadow-lg">
-                <h1 className="text-2xl font-bold text-red-600 mb-4">Configuration Required</h1>
-                <p className="text-gray-600 mb-6">
-                  Firebase authentication is not configured. Please set up your environment variables.
-                </p>
-                <div className="text-left bg-gray-100 p-4 rounded text-sm">
-                  <p className="font-semibold mb-2">Required environment variables:</p>
-                  <ul className="list-disc list-inside space-y-1 text-gray-700">
-                    <li>NEXT_PUBLIC_FIREBASE_API_KEY</li>
-                    <li>NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN</li>
-                    <li>NEXT_PUBLIC_FIREBASE_PROJECT_ID</li>
-                  </ul>
-                </div>
-                <div className="mt-6">
-                  <a 
-                    href="/" 
-                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Back to Home
-                  </a>
-                </div>
-              </div>
-            </div>
-          </main>
-          <Footer />
-          <Toaster position="top-center" />
-        </>
-      );
-    }
 
     return (
       <>

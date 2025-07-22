@@ -11,12 +11,14 @@ import { useRouter } from 'next/navigation';
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
+      setAuthLoading(false);
     });
     return () => unsubscribe();
   }, []);
@@ -77,7 +79,9 @@ export default function Header() {
 
           {/* Desktop CTA Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            {!currentUser ? (
+            {authLoading ? (
+              <span className="text-gray-400 text-sm">Loading...</span>
+            ) : !currentUser ? (
               <>
                 <Link href="/login">
                   <Button variant="ghost" size="sm" className="gap-2">
@@ -94,6 +98,10 @@ export default function Header() {
               </>
             ) : (
               <>
+                <span className="flex items-center gap-2 text-gray-700 font-medium px-2">
+                  <User className="w-4 h-4" />
+                  {currentUser.displayName || currentUser.email}
+                </span>
                 <Button variant="outline" size="sm" className="gap-2" onClick={handleSignOut}>
                   <LogOut className="w-4 h-4" />
                   Sign Out
@@ -137,7 +145,9 @@ export default function Header() {
                   </Link>
                 )}
                 <div className="pt-4 border-t border-gray-200 space-y-3">
-                  {!currentUser ? (
+                  {authLoading ? (
+                    <span className="text-gray-400 text-sm">Loading...</span>
+                  ) : !currentUser ? (
                     <>
                       <Link href="/login" className="block">
                         <Button variant="ghost" size="sm" className="w-full justify-center gap-2">
@@ -153,10 +163,16 @@ export default function Header() {
                       </Link>
                     </>
                   ) : (
-                    <Button variant="outline" size="sm" className="w-full justify-center gap-2" onClick={handleSignOut}>
-                      <LogOut className="w-4 h-4" />
-                      Sign Out
-                    </Button>
+                    <>
+                      <span className="flex items-center gap-2 text-gray-700 font-medium px-2 w-full justify-center">
+                        <User className="w-4 h-4" />
+                        {currentUser.displayName || currentUser.email}
+                      </span>
+                      <Button variant="outline" size="sm" className="w-full justify-center gap-2" onClick={handleSignOut}>
+                        <LogOut className="w-4 h-4" />
+                        Sign Out
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>

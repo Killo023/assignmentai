@@ -13,6 +13,7 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { Loader2, Bot, Upload, History, User as UserIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
+import Header from '@/components/layout/Header';
 
 interface Assignment {
   id: string;
@@ -107,6 +108,14 @@ export default function DashboardPage() {
     toast.success('Upgrade feature coming soon!');
   };
 
+  // Calculate days left in trial
+  let daysLeft = null;
+  if (userData?.subscription?.plan === 'trial' && userData?.subscription?.trialEndDate) {
+    const trialEnd = new Date(userData.subscription.trialEndDate);
+    const today = new Date();
+    daysLeft = Math.max(0, Math.ceil((trialEnd.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 flex items-center justify-center">
@@ -127,6 +136,8 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50">
+      {/* Navbar/Header */}
+      <Header />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <motion.div
@@ -140,6 +151,12 @@ export default function DashboardPage() {
           <p className="text-gray-600">
             Transform your assignments with AI-powered assistance
           </p>
+          {/* Show days left in trial if on trial plan */}
+          {daysLeft !== null && (
+            <div className="mt-2 inline-block bg-yellow-100 text-yellow-800 text-sm font-semibold px-3 py-1 rounded-full">
+              {daysLeft} day{daysLeft === 1 ? '' : 's'} left in your free trial
+            </div>
+          )}
         </motion.div>
 
         {/* Quick Stats */}

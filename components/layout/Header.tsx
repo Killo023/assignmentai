@@ -1,13 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
-import { Menu, X, Bot, LogIn, UserPlus } from 'lucide-react';
+import { Menu, X, Bot, LogIn, UserPlus, User, CreditCard, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { onAuthStateChanged, signOut, getAuth } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const navigation = [
     { name: 'Features', href: '#features' },
@@ -22,6 +34,13 @@ export default function Header() {
       element?.scrollIntoView({ behavior: 'smooth' });
     }
     setIsMenuOpen(false);
+  };
+
+  const handleSignOut = async () => {
+    const auth = getAuth();
+    await signOut(auth);
+    setCurrentUser(null);
+    router.push('/login');
   };
 
   return (
@@ -49,22 +68,38 @@ export default function Header() {
                 {item.name}
               </button>
             ))}
+            {currentUser && (
+              <Link href="/dashboard?tab=profile" className="flex items-center gap-1 text-gray-600 hover:text-primary-500 font-medium transition-colors">
+                <CreditCard className="w-4 h-4" /> Billing & Account
+              </Link>
+            )}
           </nav>
 
           {/* Desktop CTA Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Link href="/login">
-              <Button variant="ghost" size="sm" className="gap-2">
-                <LogIn className="w-4 h-4" />
-                Sign In
-              </Button>
-            </Link>
-            <Link href="/signup">
-              <Button size="sm" className="gap-2">
-                <UserPlus className="w-4 h-4" />
-                Start Free Trial
-              </Button>
-            </Link>
+            {!currentUser ? (
+              <>
+                <Link href="/login">
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <LogIn className="w-4 h-4" />
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/signup">
+                  <Button size="sm" className="gap-2">
+                    <UserPlus className="w-4 h-4" />
+                    Start Free Trial
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" size="sm" className="gap-2" onClick={handleSignOut}>
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -96,20 +131,33 @@ export default function Header() {
                     {item.name}
                   </button>
                 ))}
-                
+                {currentUser && (
+                  <Link href="/dashboard?tab=profile" className="flex items-center gap-1 text-gray-600 hover:text-primary-500 font-medium transition-colors py-2">
+                    <CreditCard className="w-4 h-4" /> Billing & Account
+                  </Link>
+                )}
                 <div className="pt-4 border-t border-gray-200 space-y-3">
-                  <Link href="/login" className="block">
-                    <Button variant="ghost" size="sm" className="w-full justify-center gap-2">
-                      <LogIn className="w-4 h-4" />
-                      Sign In
+                  {!currentUser ? (
+                    <>
+                      <Link href="/login" className="block">
+                        <Button variant="ghost" size="sm" className="w-full justify-center gap-2">
+                          <LogIn className="w-4 h-4" />
+                          Sign In
+                        </Button>
+                      </Link>
+                      <Link href="/signup" className="block">
+                        <Button size="sm" className="w-full justify-center gap-2">
+                          <UserPlus className="w-4 h-4" />
+                          Start Free Trial
+                        </Button>
+                      </Link>
+                    </>
+                  ) : (
+                    <Button variant="outline" size="sm" className="w-full justify-center gap-2" onClick={handleSignOut}>
+                      <LogOut className="w-4 h-4" />
+                      Sign Out
                     </Button>
-                  </Link>
-                  <Link href="/signup" className="block">
-                    <Button size="sm" className="w-full justify-center gap-2">
-                      <UserPlus className="w-4 h-4" />
-                      Start Free Trial
-                    </Button>
-                  </Link>
+                  )}
                 </div>
               </div>
             </motion.div>

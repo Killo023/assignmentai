@@ -177,7 +177,18 @@ export default function ChatInterface({ assignment, userId, onClose }: ChatInter
                   <p className={`text-xs mt-1 ${
                     message.type === 'user' ? 'text-primary-100' : 'text-gray-500'
                   }`}>
-                    {message.timestamp.toLocaleTimeString()}
+                    {
+                      (() => {
+                        let date = message.timestamp;
+                        // Firestore Timestamp check
+                        if (date && typeof date === 'object' && 'toDate' in date && typeof (date as any).toDate === 'function') {
+                          date = (date as any).toDate();
+                        } else {
+                          date = new Date(date);
+                        }
+                        return !isNaN(date.getTime()) ? date.toLocaleTimeString() : '';
+                      })()
+                    }
                   </p>
                 </div>
 

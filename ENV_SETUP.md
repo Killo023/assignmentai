@@ -16,9 +16,9 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
 NEXT_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id
 
 # =============================================================================
-# GOOGLE GEMINI AI CONFIGURATION (Required for AI Processing)
+# HUGGING FACE AI CONFIGURATION (Required for AI Processing)
 # =============================================================================
-GEMINI_API_KEY=your_gemini_api_key_here
+HUGGINGFACE_TOKEN=your_huggingface_token_here
 
 # =============================================================================
 # PAYPAL INTEGRATION (Required for Payment Processing)

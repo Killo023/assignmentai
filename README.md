@@ -6,7 +6,7 @@ A fullstack Next.js 14 SaaS application that helps students enhance their academ
 
 ✅ **Real Firebase Authentication** - Complete user management  
 ✅ **Firestore Database** - Scalable data storage  
-✅ **Google Gemini AI** - Advanced assignment processing  
+✅ **DeepSeek AI via Hugging Face** - Advanced assignment processing  
 ✅ **PayPal Payments** - Subscription management  
 ✅ **File Processing** - PDF, DOCX, XLSX support  
 ✅ **Real-time Chat** - AI tutoring assistance  

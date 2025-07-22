@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Process assignment with Gemini AI
+    // Process assignment with DeepSeek AI (via Hugging Face)
     const aiResult = await processAssignment(content, context);
 
     // Save assignment to Firestore

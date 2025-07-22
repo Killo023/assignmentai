@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Get AI response
+    // Get AI response from DeepSeek (via Hugging Face)
     const aiResponse = await chatWithAI(message, conversationHistory);
 
     // Update assignment with chat history

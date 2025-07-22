@@ -45,7 +45,13 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching assignments:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch assignments', details: error?.message || error },
+      {
+        error: 'Failed to fetch assignments',
+        details:
+          typeof error === 'object' && error !== null && 'message' in error
+            ? (error as any).message
+            : String(error),
+      },
       { status: 500 }
     );
   }

@@ -31,18 +31,21 @@ export async function GET(request: NextRequest) {
     );
 
     const querySnapshot = await getDocs(q);
-    const assignments = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
-      updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt,
-    }));
+    const assignments = querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt,
+        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : data.updatedAt,
+      };
+    });
 
     return NextResponse.json({ assignments });
   } catch (error) {
     console.error('Error fetching assignments:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch assignments' },
+      { error: 'Failed to fetch assignments', details: error?.message || error },
       { status: 500 }
     );
   }

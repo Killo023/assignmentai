@@ -111,7 +111,12 @@ export default function DashboardPage() {
   // Calculate days left in trial
   let daysLeft = null;
   if (userData?.subscription?.plan === 'trial' && userData?.subscription?.trialEndDate) {
-    const trialEnd = new Date(userData.subscription.trialEndDate);
+    let trialEnd;
+    if (userData.subscription.trialEndDate.toDate) {
+      trialEnd = userData.subscription.trialEndDate.toDate();
+    } else {
+      trialEnd = new Date(userData.subscription.trialEndDate);
+    }
     const today = new Date();
     daysLeft = Math.max(0, Math.ceil((trialEnd.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
   }
